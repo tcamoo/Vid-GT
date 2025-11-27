@@ -1,10 +1,3 @@
-export interface VideoMetadata {
-  title: string;
-  description: string;
-  tags: string[];
-  suggestedFilename: string;
-}
-
 export interface TelegramConfig {
   botToken: string;
   chatId: string;
@@ -13,11 +6,19 @@ export interface TelegramConfig {
 
 export interface UploadState {
   file: File | null;
+  fileType: 'video' | 'audio' | null;
   previewUrl: string | null;
-  base64Data: string | null;
-  status: 'idle' | 'compressing' | 'analyzing' | 'uploading' | 'complete' | 'error';
+  status: 'idle' | 'uploading' | 'complete' | 'error';
   progress: number;
   error?: string;
-  metadata?: VideoMetadata;
   telegramLink?: string;
+}
+
+export interface HistoryItem {
+  id: string; // Message ID or UUID
+  filename: string;
+  fileType: 'video' | 'audio';
+  link: string;
+  timestamp: number;
+  size: number;
 }
