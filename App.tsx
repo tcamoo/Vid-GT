@@ -62,7 +62,7 @@ const App: React.FC = () => {
     try {
       const caption = `Filename: \`${file.name}\`\nSize: \`${(file.size/1024/1024).toFixed(2)}MB\``;
       
-      const link = await uploadToTelegram(
+      const { link, fileId } = await uploadToTelegram(
         file, 
         caption, 
         tgConfig, 
@@ -74,6 +74,7 @@ const App: React.FC = () => {
         filename: file.name,
         fileType: isVideo ? 'video' : 'audio',
         link,
+        fileId,
         timestamp: Date.now(),
         size: file.size
       });
@@ -85,7 +86,8 @@ const App: React.FC = () => {
         ...prev,
         status: 'complete',
         progress: 100,
-        telegramLink: link
+        telegramLink: link,
+        fileId: fileId
       }));
 
     } catch (error) {
