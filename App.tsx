@@ -17,7 +17,8 @@ const App: React.FC = () => {
     progress: 0
   });
 
-  const [tgConfig, setTgConfig] = useState<TelegramConfig | null>(null);
+  // Default to empty config (implies Server Mode capability)
+  const [tgConfig, setTgConfig] = useState<TelegramConfig>({ botToken: '', chatId: '' });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
@@ -39,11 +40,6 @@ const App: React.FC = () => {
   };
 
   const handleUploadStart = async (file: File) => {
-    if (!tgConfig) {
-        setIsSettingsOpen(true);
-        return;
-    }
-
     // Determine type
     const isVideo = file.type.startsWith('video/');
     const isAudio = file.type.startsWith('audio/');
@@ -70,7 +66,7 @@ const App: React.FC = () => {
       const { link, fileId } = await uploadToTelegram(
         file, 
         caption, 
-        tgConfig, 
+        tgConfig, // Pass current config (could be empty for server mode)
         (p) => setState(prev => ({ ...prev, progress: p }))
       );
 
@@ -122,7 +118,7 @@ const App: React.FC = () => {
       <Header 
         onOpenSettings={() => setIsSettingsOpen(true)} 
         onToggleHistory={() => setIsHistoryOpen(true)}
-        hasConfig={!!tgConfig}
+        hasConfig={!!(tgConfig.botToken || tgConfig.chatId)} // Show active style if local config exists
       />
 
       <SettingsModal 
