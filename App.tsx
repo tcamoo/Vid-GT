@@ -145,7 +145,7 @@ const App: React.FC = () => {
               LINK<span className="text-cyber-cyan">NEXUS</span>
             </h2>
             <p className="text-cyber-cyan/60 font-mono text-sm md:text-base tracking-widest uppercase">
-              // Secure Video & Audio & Image Uplink
+              // 安全视频、音频及图片上行链路
             </p>
         </div>
 
