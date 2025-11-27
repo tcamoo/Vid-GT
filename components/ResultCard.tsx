@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UploadState } from '../types';
-import { Copy, Check, RefreshCw, ExternalLink, FileAudio, FileVideo } from 'lucide-react';
+import { Copy, Check, RefreshCw, ExternalLink, FileAudio, FileVideo, Link } from 'lucide-react';
 
 interface ResultCardProps {
   state: UploadState;
@@ -8,14 +8,24 @@ interface ResultCardProps {
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
-  const [copied, setCopied] = useState(false);
+  const [copiedTg, setCopiedTg] = useState(false);
+  const [copiedDirect, setCopiedDirect] = useState(false);
 
   if (!state.telegramLink) return null;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(state.telegramLink!);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const directLink = state.fileId 
+    ? `${window.location.origin}/api/file?id=${state.fileId}`
+    : null;
+
+  const handleCopy = (text: string, isDirect: boolean) => {
+    navigator.clipboard.writeText(text);
+    if (isDirect) {
+        setCopiedDirect(true);
+        setTimeout(() => setCopiedDirect(false), 2000);
+    } else {
+        setCopiedTg(true);
+        setTimeout(() => setCopiedTg(false), 2000);
+    }
   };
 
   const isVideo = state.fileType === 'video';
@@ -57,56 +67,77 @@ const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
         </div>
 
         {/* Data & Actions */}
-        <div className="p-6 border-t border-cyber-cyan/20 bg-cyber-black/40">
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1 w-full space-y-2">
-                    <label className="text-xs font-mono text-cyber-cyan/60 uppercase">Secure Link</label>
-                    <div className="flex bg-black/50 border border-cyber-cyan/30 p-1 rounded-sm">
+        <div className="p-6 border-t border-cyber-cyan/20 bg-cyber-black/40 space-y-4">
+            
+            {/* Direct Link Section */}
+            {directLink && (
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                    <div className="flex-1 w-full space-y-1">
+                        <label className="text-xs font-mono text-cyber-cyan uppercase flex items-center gap-1">
+                            <Link className="w-3 h-3" /> Direct Stream Link
+                        </label>
+                        <div className="flex bg-black/50 border border-cyber-cyan/30 p-1 rounded-sm shadow-[0_0_10px_rgba(0,243,255,0.1)]">
+                            <input 
+                                type="text" 
+                                readOnly 
+                                value={directLink} 
+                                className="bg-transparent border-none text-cyber-cyan font-mono text-sm w-full focus:ring-0 px-2"
+                            />
+                        </div>
+                    </div>
+                    
+                    <button
+                        onClick={() => handleCopy(directLink, true)}
+                        className="cyber-button px-6 py-2 flex items-center justify-center gap-2 text-sm shrink-0"
+                    >
+                        {copiedDirect ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copiedDirect ? 'COPIED' : 'COPY DIRECT'}
+                    </button>
+                </div>
+            )}
+
+            {/* Telegram Link Section */}
+            <div className="flex flex-col md:flex-row gap-4 items-end opacity-70 hover:opacity-100 transition-opacity">
+                <div className="flex-1 w-full space-y-1">
+                    <label className="text-xs font-mono text-cyber-cyan/60 uppercase">Telegram Deep Link</label>
+                    <div className="flex bg-black/50 border border-cyber-cyan/10 p-1 rounded-sm">
                         <input 
                             type="text" 
                             readOnly 
                             value={state.telegramLink} 
-                            className="bg-transparent border-none text-cyber-cyan font-mono text-sm w-full focus:ring-0 px-2"
+                            className="bg-transparent border-none text-cyber-cyan/70 font-mono text-sm w-full focus:ring-0 px-2"
                         />
                     </div>
                 </div>
                 
                 <div className="flex gap-2 w-full md:w-auto">
                     <button
-                        onClick={handleCopy}
-                        className="cyber-button flex-1 md:flex-none px-6 py-2 flex items-center justify-center gap-2 text-sm"
+                        onClick={() => handleCopy(state.telegramLink!, false)}
+                        className="p-2 border border-cyber-cyan/30 text-cyber-cyan/70 hover:bg-cyber-cyan/10 hover:text-cyber-cyan rounded-sm transition-all"
+                        title="Copy TG Link"
                     >
-                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {copied ? 'COPIED' : 'COPY'}
+                        {copiedTg ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                     <a
                         href={state.telegramLink}
                         target="_blank"
                         rel="noreferrer"
-                        className="cyber-button px-3 py-2 flex items-center justify-center"
+                        className="p-2 border border-cyber-cyan/30 text-cyber-cyan/70 hover:bg-cyber-cyan/10 hover:text-cyber-cyan rounded-sm transition-all"
                         title="Open External"
                     >
                         <ExternalLink className="w-4 h-4" />
                     </a>
-                    <button 
-                        onClick={onReset}
-                        className="p-2 border border-cyber-gray hover:border-cyber-cyan text-cyber-gray hover:text-cyber-cyan transition-colors"
-                        title="New Upload"
-                    >
-                        <RefreshCw className="w-4 h-4" />
-                    </button>
                 </div>
             </div>
 
-            <div className="mt-6 flex gap-4 text-xs font-mono text-cyber-cyan/40">
-                <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-cyber-green rounded-full animate-pulse"></div>
-                    STATUS: ONLINE
-                </div>
-                <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-cyber-purple rounded-full"></div>
-                    ENCRYPTION: NONE
-                </div>
+            <div className="pt-4 flex justify-center">
+                <button 
+                    onClick={onReset}
+                    className="flex items-center gap-2 text-xs font-mono text-slate-500 hover:text-cyber-cyan transition-colors"
+                >
+                    <RefreshCw className="w-3 h-3" />
+                    START NEW TRANSMISSION
+                </button>
             </div>
         </div>
 
