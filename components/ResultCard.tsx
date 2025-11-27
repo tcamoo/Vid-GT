@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UploadState } from '../types';
-import { Copy, Check, RefreshCw, ExternalLink, FileAudio, FileVideo, Link } from 'lucide-react';
+import { Copy, Check, RefreshCw, ExternalLink, FileAudio, FileVideo, Link, Image as ImageIcon } from 'lucide-react';
 
 interface ResultCardProps {
   state: UploadState;
@@ -29,6 +29,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
   };
 
   const isVideo = state.fileType === 'video';
+  const isImage = state.fileType === 'image';
 
   return (
     <div className="w-full animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -48,13 +49,23 @@ const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
         <div className="bg-black/50 aspect-video flex flex-col items-center justify-center relative p-8">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.02)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
             
-            {isVideo && state.previewUrl ? (
+            {isVideo && state.previewUrl && (
                 <video 
                     src={state.previewUrl} 
                     controls 
                     className="max-h-full max-w-full shadow-[0_0_20px_rgba(0,243,255,0.2)] border border-cyber-cyan/20"
                 />
-            ) : (
+            )}
+            
+            {isImage && state.previewUrl && (
+                <img 
+                    src={state.previewUrl} 
+                    alt="Preview"
+                    className="max-h-full max-w-full shadow-[0_0_20px_rgba(0,243,255,0.2)] border border-cyber-cyan/20 object-contain"
+                />
+            )}
+
+            {!isVideo && !isImage && (
                 <div className="flex flex-col items-center gap-4 animate-float">
                     <div className="p-6 rounded-full bg-cyber-purple/10 border border-cyber-purple shadow-[0_0_30px_rgba(188,19,254,0.3)]">
                         <FileAudio className="w-16 h-16 text-cyber-purple" />
@@ -74,7 +85,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
                 <div className="flex flex-col md:flex-row gap-4 items-end">
                     <div className="flex-1 w-full space-y-1">
                         <label className="text-xs font-mono text-cyber-cyan uppercase flex items-center gap-1">
-                            <Link className="w-3 h-3" /> Direct Stream Link
+                            <Link className="w-3 h-3" /> Direct Proxy Link
                         </label>
                         <div className="flex bg-black/50 border border-cyber-cyan/30 p-1 rounded-sm shadow-[0_0_10px_rgba(0,243,255,0.1)]">
                             <input 
@@ -91,7 +102,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
                         className="cyber-button px-6 py-2 flex items-center justify-center gap-2 text-sm shrink-0"
                     >
                         {copiedDirect ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {copiedDirect ? 'COPIED' : 'COPY DIRECT'}
+                        {copiedDirect ? 'COPIED' : 'COPY LINK'}
                     </button>
                 </div>
             )}
@@ -130,13 +141,14 @@ const ResultCard: React.FC<ResultCardProps> = ({ state, onReset }) => {
                 </div>
             </div>
 
-            <div className="pt-4 flex justify-center">
+            {/* Continue Uploading Action */}
+            <div className="pt-6 border-t border-cyber-cyan/10 mt-4">
                 <button 
                     onClick={onReset}
-                    className="flex items-center gap-2 text-xs font-mono text-slate-500 hover:text-cyber-cyan transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-cyber-gray/30 hover:bg-cyber-cyan/20 border border-cyber-gray hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan transition-all duration-300 font-mono uppercase tracking-widest text-sm rounded-sm group"
                 >
-                    <RefreshCw className="w-3 h-3" />
-                    START NEW TRANSMISSION
+                    <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                    Start New Transmission
                 </button>
             </div>
         </div>
