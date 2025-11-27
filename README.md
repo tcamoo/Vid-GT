@@ -1,4 +1,4 @@
-# LinkNexus (原 VidGraph)
+# LinkNexus 
 
 ![LinkNexus Banner](https://img.shields.io/badge/Status-Operational-00f3ff?style=for-the-badge&logo=cloudflare) ![Style](https://img.shields.io/badge/Style-Cyberpunk-bc13fe?style=for-the-badge)
 
