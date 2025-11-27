@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, X, Server, AlertTriangle, Info, Cloud } from 'lucide-react';
+import { Settings, Save, X, Server, AlertTriangle, Info, Cloud, RefreshCw } from 'lucide-react';
 import { TelegramConfig } from '../types';
 
 interface SettingsModalProps {
@@ -30,6 +30,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, config, 
     onClose();
   };
 
+  const handleReset = () => {
+    setBotToken('');
+    setChatId('');
+    onSave({ botToken: '', chatId: '', apiRoot });
+    onClose();
+  };
+
   const isServerMode = !botToken || !chatId;
 
   return (
@@ -47,80 +54,92 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, config, 
           <h2 className="text-xl font-bold tracking-widest font-mono">SYSTEM CONFIG</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 font-mono">
+        <div className="space-y-5 font-mono">
           
           {/* Mode Indicator */}
           <div className={`p-3 rounded-sm border ${isServerMode ? 'bg-cyber-purple/10 border-cyber-purple/50' : 'bg-cyber-cyan/10 border-cyber-cyan/50'} transition-colors`}>
             <div className="flex items-center gap-2 font-bold mb-1">
                 {isServerMode ? <Cloud className="w-4 h-4 text-cyber-purple" /> : <Server className="w-4 h-4 text-cyber-cyan" />}
                 <span className={isServerMode ? 'text-cyber-purple' : 'text-cyber-cyan'}>
-                    {isServerMode ? 'SERVER MODE (BACKEND)' : 'DIRECT MODE (BROWSER)'}
+                    {isServerMode ? 'CURRENT: SERVER MODE' : 'CURRENT: DIRECT MODE'}
                 </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
                 {isServerMode 
-                    ? "Uploads proxy via Cloudflare Backend. No local config needed. Max 100MB."
-                    : "Uploads directly from browser to Telegram. Supports large files (up to 2GB) with Local Server."
+                    ? "Using Cloudflare Backend Env Vars. Limit: 100MB. No frontend config required."
+                    : "Browser uploads directly to Telegram. Supports large files (up to 2GB with Local Server)."
                 }
             </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-cyber-cyan/80 mb-1 uppercase">Telegram Bot Token</label>
-            <input
-              type="text"
-              value={botToken}
-              onChange={(e) => setBotToken(e.target.value)}
-              placeholder="Leave empty to use Server Env"
-              className="cyber-input w-full px-4 py-2 text-sm rounded-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-cyber-cyan/80 mb-1 uppercase">Chat ID / Username</label>
-            <input
-              type="text"
-              value={chatId}
-              onChange={(e) => setChatId(e.target.value)}
-              placeholder="Leave empty to use Server Env"
-              className="cyber-input w-full px-4 py-2 text-sm rounded-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-cyber-cyan/80 mb-1 uppercase flex items-center gap-2">
-               API Gateway <span className="text-[10px] text-slate-500 lowercase font-normal">(optional for local server)</span>
-            </label>
-            <input
-              type="text"
-              value={apiRoot}
-              onChange={(e) => setApiRoot(e.target.value)}
-              placeholder="https://api.telegram.org"
-              className="cyber-input w-full px-4 py-2 text-sm rounded-sm"
-            />
-          </div>
-
-          {/* Critical Notice for Direct Links */}
-          <div className="bg-cyber-dark/50 border border-yellow-500/30 p-3 rounded-sm text-xs space-y-2">
-            <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase">
-                <Info className="w-4 h-4" />
-                Direct Link Requirement
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label className="block text-xs font-bold text-cyber-cyan/80 mb-1 uppercase">Telegram Bot Token</label>
+                <input
+                type="text"
+                value={botToken}
+                onChange={(e) => setBotToken(e.target.value)}
+                placeholder="Direct Mode Only"
+                className="cyber-input w-full px-4 py-2 text-sm rounded-sm"
+                />
             </div>
-            <p className="text-slate-400 leading-relaxed">
-                For Direct Links (/api/file) to work, <strong>TG_BOT_TOKEN</strong> must be set in Cloudflare Environment Variables, regardless of the mode used here.
-            </p>
-          </div>
 
-          <div className="pt-4 border-t border-cyber-cyan/20">
-            <button
-              type="submit"
-              className="cyber-button w-full py-3 flex items-center justify-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              SAVE CONFIGURATION
-            </button>
-          </div>
-        </form>
+            <div>
+                <label className="block text-xs font-bold text-cyber-cyan/80 mb-1 uppercase">Chat ID / Username</label>
+                <input
+                type="text"
+                value={chatId}
+                onChange={(e) => setChatId(e.target.value)}
+                placeholder="Direct Mode Only"
+                className="cyber-input w-full px-4 py-2 text-sm rounded-sm"
+                />
+            </div>
+
+            <div>
+                <label className="block text-xs font-bold text-cyber-cyan/80 mb-1 uppercase flex items-center gap-2">
+                API Gateway <span className="text-[10px] text-slate-500 lowercase font-normal">(optional for local server)</span>
+                </label>
+                <input
+                type="text"
+                value={apiRoot}
+                onChange={(e) => setApiRoot(e.target.value)}
+                placeholder="https://api.telegram.org"
+                className="cyber-input w-full px-4 py-2 text-sm rounded-sm"
+                />
+            </div>
+
+            {/* Critical Notice for Direct Links */}
+            <div className="bg-cyber-dark/50 border border-yellow-500/30 p-3 rounded-sm text-xs space-y-2">
+                <div className="flex items-center gap-2 text-yellow-400 font-bold uppercase">
+                    <Info className="w-4 h-4" />
+                    Env Var Required
+                </div>
+                <p className="text-slate-400 leading-relaxed">
+                    For Direct Links to work, <strong>TG_BOT_TOKEN</strong> must be set in Cloudflare Dashboard, even if using Direct Mode here.
+                </p>
+            </div>
+
+            <div className="pt-4 border-t border-cyber-cyan/20 flex gap-3">
+                {!isServerMode && (
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="flex-1 py-3 flex items-center justify-center gap-2 text-xs font-bold border border-cyber-purple/50 text-cyber-purple hover:bg-cyber-purple/10 transition-colors uppercase"
+                    >
+                        <RefreshCw className="w-3 h-3" />
+                        Reset to Server Mode
+                    </button>
+                )}
+                <button
+                type="submit"
+                className="flex-[2] cyber-button py-3 flex items-center justify-center gap-2"
+                >
+                <Save className="w-4 h-4" />
+                SAVE CONFIG
+                </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
