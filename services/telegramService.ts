@@ -5,7 +5,7 @@ export const uploadToTelegram = async (
   caption: string,
   config: TelegramConfig,
   onProgress?: (progress: number) => void
-): Promise<string> => {
+): Promise<{ link: string; fileId: string }> => {
   const isAudio = file.type.startsWith('audio/');
   const endpoint = isAudio ? 'sendAudio' : 'sendVideo';
   const fileKey = isAudio ? 'audio' : 'video';
@@ -45,6 +45,12 @@ export const uploadToTelegram = async (
              const chat = response.result.chat;
              let link = "";
 
+             // Extract File ID
+             let fileId = "";
+             if (response.result.video) fileId = response.result.video.file_id;
+             else if (response.result.audio) fileId = response.result.audio.file_id;
+             else if (response.result.document) fileId = response.result.document.file_id;
+
              if (chat.username) {
                // Public channel/group: https://t.me/username/message_id
                link = `https://t.me/${chat.username}/${messageId}`;
@@ -53,7 +59,7 @@ export const uploadToTelegram = async (
                const cleanId = chat.id.toString().replace(/^-100/, '');
                link = `https://t.me/c/${cleanId}/${messageId}`;
              }
-             resolve(link);
+             resolve({ link, fileId });
           } else {
             reject(new Error(response.description || "Telegram 上传失败"));
           }
