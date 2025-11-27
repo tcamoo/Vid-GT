@@ -1,5 +1,5 @@
 {
-  "name": "vidgraph-ai",
+  "name": "vidg-gt",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -7,18 +7,18 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler pages deploy dist"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
     "lucide-react": "^0.344.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
     "postcss": "^8.4.35",
