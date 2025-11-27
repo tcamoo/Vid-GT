@@ -1,6 +1,6 @@
 export interface TelegramConfig {
-  botToken: string;
-  chatId: string;
+  botToken?: string;
+  chatId?: string;
   apiRoot?: string; // Optional custom API root for local bot servers
 }
 
