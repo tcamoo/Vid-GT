@@ -113,12 +113,15 @@ const App: React.FC = () => {
     });
   };
 
+  // Determine mode for UI feedback
+  const isServerMode = !tgConfig.botToken || !tgConfig.chatId;
+
   return (
     <div className="min-h-screen font-sans selection:bg-cyber-cyan/30 selection:text-cyber-cyan">
       <Header 
         onOpenSettings={() => setIsSettingsOpen(true)} 
         onToggleHistory={() => setIsHistoryOpen(true)}
-        hasConfig={!!(tgConfig.botToken || tgConfig.chatId)} // Show active style if local config exists
+        hasConfig={!isServerMode} // Show active style if local config exists
       />
 
       <SettingsModal 
@@ -149,7 +152,11 @@ const App: React.FC = () => {
         {state.status === 'complete' ? (
           <ResultCard state={state} onReset={handleReset} />
         ) : (
-          <UploadZone onUploadStart={handleUploadStart} uploadState={state} />
+          <UploadZone 
+            onUploadStart={handleUploadStart} 
+            uploadState={state} 
+            isServerMode={isServerMode} 
+          />
         )}
 
       </main>
