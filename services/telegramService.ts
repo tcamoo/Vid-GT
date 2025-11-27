@@ -6,9 +6,20 @@ export const uploadToTelegram = async (
   config: TelegramConfig,
   onProgress?: (progress: number) => void
 ): Promise<{ link: string; fileId: string }> => {
+  const isImage = file.type.startsWith('image/');
   const isAudio = file.type.startsWith('audio/');
-  const endpoint = isAudio ? 'sendAudio' : 'sendVideo';
-  const fileKey = isAudio ? 'audio' : 'video';
+  
+  // Determine endpoint and form field name based on type
+  let endpoint = 'sendVideo';
+  let fileKey = 'video';
+  
+  if (isImage) {
+    endpoint = 'sendPhoto';
+    fileKey = 'photo';
+  } else if (isAudio) {
+    endpoint = 'sendAudio';
+    fileKey = 'audio';
+  }
 
   const formData = new FormData();
   formData.append("chat_id", config.chatId);
@@ -47,9 +58,17 @@ export const uploadToTelegram = async (
 
              // Extract File ID
              let fileId = "";
-             if (response.result.video) fileId = response.result.video.file_id;
-             else if (response.result.audio) fileId = response.result.audio.file_id;
-             else if (response.result.document) fileId = response.result.document.file_id;
+             if (response.result.video) {
+                fileId = response.result.video.file_id;
+             } else if (response.result.audio) {
+                fileId = response.result.audio.file_id;
+             } else if (response.result.document) {
+                fileId = response.result.document.file_id;
+             } else if (response.result.photo && Array.isArray(response.result.photo)) {
+                // Photos are sent as an array of different sizes. The last one is the largest.
+                const photos = response.result.photo;
+                fileId = photos[photos.length - 1].file_id;
+             }
 
              if (chat.username) {
                // Public channel/group: https://t.me/username/message_id
