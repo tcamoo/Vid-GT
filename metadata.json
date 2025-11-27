@@ -1,5 +1,5 @@
 {
-  "name": "VidGraph AI",
-  "description": "一个受 Telegraph 启发的智能视频上传工具。上传视频，使用 Gemini 2.5 Flash 分析内容，自动生成标题和标签，并上传至 Telegram。",
+  "name": "LinkNexus",
+  "description": "A cyberpunk-styled secure file uplink tool for Telegram. Supports Video, Audio, and Images with Cloudflare KV history and direct streaming proxy.",
   "requestFramePermissions": []
 }
