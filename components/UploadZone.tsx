@@ -9,7 +9,9 @@ interface UploadZoneProps {
 }
 
 const MAX_SIZE_MB = 2000;
-const SERVER_MODE_LIMIT_MB = 100;
+// Cloudflare Free Worker Memory Limit is 128MB. Parsing FormData consumes 2x-3x memory.
+// Safe limit is around 25MB-30MB.
+const SERVER_MODE_LIMIT_MB = 25; 
 const OFFICIAL_API_LIMIT_MB = 50;
 
 const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isServerMode }) => {
@@ -45,7 +47,7 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
 
     // Check Server Mode Limit (Cloudflare Worker limitation)
     if (isServerMode && fileSizeMB > SERVER_MODE_LIMIT_MB) {
-        alert(`SERVER MODE LIMIT // 服务器代理模式仅支持 100MB 以下文件。\n\n当前文件: ${Math.round(fileSizeMB)}MB\n\n请点击右上角设置，配置 Bot Token 和 Chat ID 开启“直连模式”以支持大文件。`);
+        alert(`SERVER MODE LIMIT // Cloudflare 内存限制警告。\n\n当前文件: ${Math.round(fileSizeMB)}MB > 安全限制 ${SERVER_MODE_LIMIT_MB}MB。\n\n服务器代理模式极可能崩溃。请点击右上角设置，填入 Bot Token 开启“直连模式”。`);
         return;
     }
     
@@ -85,6 +87,8 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       validateAndUpload(e.target.files[0]);
+      // Reset input value so the same file can be selected again if needed
+      e.target.value = ''; 
     }
   }, [validateAndUpload]);
 
@@ -100,7 +104,7 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
         <Cpu className="w-16 h-16 text-cyber-cyan animate-pulse mb-6 relative z-10" />
         
         <h3 className="text-2xl font-bold text-white tracking-widest mb-2 z-10 font-mono">
-          UPLOADING DATA
+          正在上传数据
         </h3>
         
         {/* Cyber Progress Bar */}
@@ -117,7 +121,7 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
         </div>
 
         <p className="text-cyber-cyan/60 font-mono text-xs mt-4 animate-pulse">
-          &gt; ESTABLISHING SECURE LINK...
+          &gt; 正在建立安全连接...
         </p>
       </div>
     );
@@ -128,7 +132,7 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
       className={`relative w-full h-80 rounded-sm border-2 transition-all duration-300 flex flex-col items-center justify-center p-8 cursor-pointer overflow-hidden
         ${dragActive 
           ? 'border-cyber-cyan bg-cyber-cyan/10 shadow-[0_0_30px_rgba(0,243,255,0.3)]' 
-          : 'border-cyber-gray bg-cyber-dark/60 hover:border-cyber-cyan/50 hover:bg-cyber-dark/80'
+          : 'border-cyber-gray bg-cyber-dark/60 hover:border-cyber-cyan/50 hover:border-cyber-cyan/80'
         }
       `}
       onDragEnter={handleDrag}
@@ -158,15 +162,15 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
       </div>
 
       <h3 className="text-xl font-bold text-white mb-2 tracking-wider font-mono">
-        INITIATE UPLOAD
+        点击或拖拽上传
       </h3>
       
       <div className="flex flex-wrap justify-center items-center gap-4 text-cyber-cyan/60 text-sm mb-6 font-mono">
-        <span className="flex items-center gap-1"><Video className="w-3 h-3" /> Video</span>
+        <span className="flex items-center gap-1"><Video className="w-3 h-3" /> 视频</span>
         <span className="text-cyber-cyan/20">|</span>
-        <span className="flex items-center gap-1"><Music className="w-3 h-3" /> Audio</span>
+        <span className="flex items-center gap-1"><Music className="w-3 h-3" /> 音频</span>
         <span className="text-cyber-cyan/20">|</span>
-        <span className="flex items-center gap-1"><ImageIcon className="w-3 h-3" /> Image</span>
+        <span className="flex items-center gap-1"><ImageIcon className="w-3 h-3" /> 图片</span>
       </div>
 
       <div className={`flex items-center gap-2 text-xs px-3 py-1 border rounded-full font-bold tracking-wide transition-colors ${
@@ -175,13 +179,13 @@ const UploadZone: React.FC<UploadZoneProps> = ({ onUploadStart, uploadState, isS
             : 'border-cyber-cyan/30 text-cyber-cyan bg-cyber-cyan/10'
       }`}>
         {isServerMode ? <Cloud className="w-3 h-3" /> : <Server className="w-3 h-3" />}
-        <span>{isServerMode ? 'SERVER MODE (MAX 100MB)' : 'DIRECT MODE (UNLIMITED)'}</span>
+        <span>{isServerMode ? `服务器模式 (限 ${SERVER_MODE_LIMIT_MB}MB)` : '直连模式 (无限制)'}</span>
       </div>
 
       {uploadState.error && (
-        <div className="absolute bottom-4 left-4 right-4 bg-red-900/80 text-red-100 px-4 py-2 border-l-4 border-red-500 flex items-center gap-2 font-mono text-sm">
-          <AlertCircle className="w-4 h-4" />
-          <span>ERR: {uploadState.error}</span>
+        <div className="absolute bottom-4 left-4 right-4 bg-red-900/80 text-red-100 px-4 py-2 border-l-4 border-red-500 flex items-center gap-2 font-mono text-sm shadow-lg">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span className="line-clamp-2" title={uploadState.error}>错误: {uploadState.error}</span>
         </div>
       )}
     </div>
