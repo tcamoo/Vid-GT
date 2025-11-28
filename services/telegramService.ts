@@ -65,7 +65,7 @@ export const uploadToTelegram = async (
         }
       } else {
         if (xhr.status === 413) {
-            reject(new Error("File too big (Direct Mode limit 50MB via official API). Use Local Server for up to 2GB."));
+            reject(new Error("文件过大 (直连模式下官方API限制 50MB)。请使用本地服务器支持高达 2GB。"));
         } else {
             reject(new Error(`HTTP Error: ${xhr.status}`));
         }
@@ -85,9 +85,11 @@ async function uploadViaBackendProxy(
     onProgress?: (progress: number) => void
 ): Promise<{ link: string; fileId: string }> {
     
-    // Cloudflare Workers limit request body to 100MB
-    if (file.size > 100 * 1024 * 1024) {
-        throw new Error("Server Mode Limit: 100MB. Configure Direct Mode in settings for larger files.");
+    // Cloudflare Workers limit request body (FormData) severely in free tier
+    // Use a safe limit to prevent crashes
+    const SAFE_LIMIT_MB = 25; 
+    if (file.size > SAFE_LIMIT_MB * 1024 * 1024) {
+        throw new Error(`服务器模式文件限制 ${SAFE_LIMIT_MB}MB (Cloudflare 内存限制)。\n请在设置中填入 Token 使用直连模式上传大文件。`);
     }
 
     const formData = new FormData();
@@ -95,19 +97,36 @@ async function uploadViaBackendProxy(
     formData.append('caption', caption);
     formData.append('type', typeKey); // 'video', 'audio', 'photo'
 
-    // NOTE: Fetch API doesn't support upload progress natively in all browsers
     if (onProgress) onProgress(10); // Fake start
 
-    const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-    });
+    let res;
+    try {
+        res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+    } catch (e) {
+        throw new Error("网络错误: 无法连接到 Cloudflare 后端。");
+    }
 
-    if (onProgress) onProgress(50); // Mid progress
+    if (onProgress) onProgress(80); // Processing
 
+    // Check for Worker Crash (often returns 502/500 with HTML or empty body)
     if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Server Error: ${errText}`);
+        let errText = "";
+        try { 
+            errText = await res.text(); 
+        } catch(e) {}
+
+        // Try to parse JSON error first
+        try {
+            const jsonErr = JSON.parse(errText);
+            throw new Error(jsonErr.description || "后端配置错误 (请检查 TG_BOT_TOKEN)");
+        } catch (e) {
+            // If not JSON, it's likely a crash
+            console.error("Server Crash Response:", errText);
+            throw new Error("Cloudflare 后端崩溃。可能是文件过大导致内存溢出，请切换到直连模式。");
+        }
     }
 
     const response = await res.json();
